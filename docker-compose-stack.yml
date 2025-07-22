@@ -1,0 +1,66 @@
+services:
+  api-gateway:
+    image: token-service-api-gateway:${TAG}
+    ports:
+      - "80:8080"
+    environment:
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+    secrets:
+      - jwt_secret
+    networks:
+      - backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  transfer-service:
+    image: token-service-transfer-service:${TAG}
+    env_file:
+      - .env
+    environment:
+      RPC_URL_FILE: /run/secrets/infura_rpc
+      PRIVATE_KEY_FILE: /run/secrets/wallet_key
+    secrets:
+      - wallet_key
+      - infura_rpc
+    networks:
+      - backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  balance-service:
+    image: token-service-balance-service:${TAG}
+    environment:
+      RPC_URL_FILE: /run/secrets/infura_rpc
+    secrets:
+      - infura_rpc
+    networks:
+      - backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  gas-service:
+    image: token-service-gas-service:${TAG}
+    environment:
+      RPC_URL_FILE: /run/secrets/infura_rpc
+    secrets:
+      - infura_rpc
+    networks:
+      - backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+secrets:
+  jwt_secret:
+    file: ./secrets/jwt-secret.key
+  wallet_key:
+    file: ./secrets/wallet-private.key
+  infura_rpc:
+    file: ./secrets/rpc-url.key
+
+networks:
+  backend:
+    external: true
